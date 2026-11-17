@@ -1,247 +1,210 @@
+package Senac_Produto;
 
-package POO;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Scanner;
 
-public class CRUDNUVEM {
-
-    // ALUNO: Gabriel Pereira da Silva
-    // RA: 0025613
-
-    static Scanner entrada = new Scanner(System.in);
-
-    static Connection conectar() {
-
-        try {
-
-            String url = System.getenv("mysql://root:ZicmTIAVgMCdMjNnCqwjWYPfOosLwhCA@mysql.railway.internal:3306/railway");
-            String usuario = System.getenv("root");
-            String senha = System.getenv("ZicmTIAVgMCdMjNnCqwjWYPfOosLwhCA");
-
-            Connection conexao = DriverManager.getConnection(
-                url, usuario, senha
-            );
-
-            System.out.println("Banco conectado com sucesso!");
-
-            return conexao;
-
-        } catch (SQLException e) {
-
-            System.out.println("Erro na conexão: " + e.getMessage());
-            return null;
-        }
-    }
-
-    static void criarTabela(Connection conexao) {
-
-        String sql = """
-            CREATE TABLE IF NOT EXISTS produtos (
-                codigo VARCHAR(30) PRIMARY KEY,
-                nome VARCHAR(100) NOT NULL,
-                preco DECIMAL(10,2) NOT NULL
-            )
-        """;
-
-        try (Statement stmt = conexao.createStatement()) {
-
-            stmt.execute(sql);
-
-        } catch (SQLException e) {
-
-            System.out.println(e.getMessage());
-        }
-    }
-
-    static void inserir(Connection conexao) {
-
-        String sql = "INSERT INTO produtos VALUES (?, ?, ?)";
-
-        try (PreparedStatement stmt =
-                conexao.prepareStatement(sql)) {
-
-            System.out.print("Código: ");
-            String codigo = entrada.nextLine();
-
-            System.out.print("Nome: ");
-            String nome = entrada.nextLine();
-
-            System.out.print("Preço: ");
-            double preco = Double.parseDouble(
-                entrada.nextLine().replace(",", ".")
-            );
-
-            stmt.setString(1, codigo);
-            stmt.setString(2, nome);
-            stmt.setDouble(3, preco);
-
-            stmt.executeUpdate();
-
-            System.out.println("Produto cadastrado!");
-
-        } catch (Exception e) {
-
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
-
-    static void listar(Connection conexao) {
-
-        String sql = "SELECT * FROM produtos ORDER BY codigo";
-
-        try (Statement stmt = conexao.createStatement();
-             ResultSet resultado = stmt.executeQuery(sql)) {
-
-            System.out.println("\n--- PRODUTOS ---");
-
-            while (resultado.next()) {
-
-                System.out.println(
-                    "Código: " + resultado.getString("codigo")
-                );
-
-                System.out.println(
-                    "Nome: " + resultado.getString("nome")
-                );
-
-                System.out.println(
-                    "Preço: " + resultado.getBigDecimal("preco")
-                );
-
-                System.out.println("----------------");
-            }
-
-        } catch (SQLException e) {
-
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
-
-    static void atualizar(Connection conexao) {
-
-        String sql =
-            "UPDATE produtos SET nome = ?, preco = ? WHERE codigo = ?";
-
-        try (PreparedStatement stmt =
-                conexao.prepareStatement(sql)) {
-
-            System.out.print("Código do produto: ");
-            String codigo = entrada.nextLine();
-
-            System.out.print("Novo nome: ");
-            String nome = entrada.nextLine();
-
-            System.out.print("Novo preço: ");
-            double preco = Double.parseDouble(
-                entrada.nextLine().replace(",", ".")
-            );
-
-            stmt.setString(1, nome);
-            stmt.setDouble(2, preco);
-            stmt.setString(3, codigo);
-
-            int linhas = stmt.executeUpdate();
-
-            if (linhas > 0) {
-                System.out.println("Produto atualizado!");
-            } else {
-                System.out.println("Produto não encontrado!");
-            }
-
-        } catch (Exception e) {
-
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
-
-    static void excluir(Connection conexao) {
-
-        String sql = "DELETE FROM produtos WHERE codigo = ?";
-
-        try (PreparedStatement stmt =
-                conexao.prepareStatement(sql)) {
-
-            System.out.print("Código do produto: ");
-            String codigo = entrada.nextLine();
-
-            stmt.setString(1, codigo);
-
-            int linhas = stmt.executeUpdate();
-
-            if (linhas > 0) {
-                System.out.println("Produto excluído!");
-            } else {
-                System.out.println("Produto não encontrado!");
-            }
-
-        } catch (SQLException e) {
-
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
+// Aluno: Gabriel Pereira da silva
+// RA: 0025613
+// Atividade: POO/CRUDNUVEM (RAILWAY)
+public class Produto2 {
 
     public static void main(String[] args) {
 
-        Connection conexao = conectar();
+        Scanner sc = new Scanner(System.in);
 
-        if (conexao == null) {
-            return;
-        }
-
-        criarTabela(conexao);
-
-        int opcao;
-
-        do {
-
-            System.out.println("\n===== CRUDNUVEM =====");
-            System.out.println("1 - Inserir produto");
-            System.out.println("2 - Listar produtos");
-            System.out.println("3 - Atualizar produto");
-            System.out.println("4 - Excluir produto");
-            System.out.println("0 - Sair");
-            System.out.print("Escolha: ");
-
-            try {
-                opcao = Integer.parseInt(entrada.nextLine());
-            } catch (NumberFormatException e) {
-                opcao = -1;
-            }
-
-            switch (opcao) {
-
-                case 1:
-                    inserir(conexao);
-                    break;
-
-                case 2:
-                    listar(conexao);
-                    break;
-
-                case 3:
-                    atualizar(conexao);
-                    break;
-
-                case 4:
-                    excluir(conexao);
-                    break;
-
-                case 0:
-                    System.out.println("Encerrando...");
-                    break;
-
-                default:
-                    System.out.println("Opção inválida!");
-            }
-
-        } while (opcao != 0);
+        String url = "mysql://root:GjwVHeUmloQCOqFSxtIEfJEjXvjDYPdF@mysql.railway.internal:3306/railway";
+        String usuario = "root";
+        String senha = "GjwVHeUmloQCOqFSxtIEfJEjXvjDYPdF";
 
         try {
-            conexao.close();
-            entrada.close();
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
+
+            Connection conexao = DriverManager.getConnection(
+                    url,
+                    usuario,
+                    senha
+            );
+
+
+            Statement criacaoBanco = conexao.createStatement();
+
+            criacaoBanco.executeUpdate(
+                    "CREATE DATABASE IF NOT EXISTS DBPRODUTO"
+            );
+
+            conexao.setCatalog("DBPRODUTO");
+
+            criacaoBanco.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS produto (" +
+                    "codigo INT, " +
+                    "nome VARCHAR(100) NOT NULL, " +
+                    "preco DECIMAL(10,2) NOT NULL" +
+                    ")"
+            );
+
+
+            int opcao = -1;
+
+            while (opcao != 0) {
+
+                System.out.println(
+                        "1 - Inserir | " +
+                        "2 - Listar | " +
+                        "3 - Atualizar | " +
+                        "4 - Deletar | " +
+                        "0 - Sair"
+                );
+
+                opcao = sc.nextInt();
+                sc.nextLine();
+
+                switch (opcao) {
+
+                    case 1:
+
+                        System.out.print("Nome do produto : ");
+                        String nome = sc.nextLine();
+
+                        System.out.print("Código do produto : ");
+                        int codigo = sc.nextInt();
+
+                        System.out.print("Preço do produto : ");
+                        float preco = sc.nextFloat();
+                        sc.nextLine();
+
+                        String sql =
+                                "INSERT INTO produto" +
+                                "(nome,codigo,preco) " +
+                                "VALUES (?,?,?)";
+
+                        PreparedStatement stmt =
+                                conexao.prepareStatement(sql);
+
+                        stmt.setString(1, nome);
+                        stmt.setInt(2, codigo);
+                        stmt.setFloat(3, preco);
+
+                        stmt.executeUpdate();
+
+                        System.out.println("Produto inserido com sucesso!!!");
+
+                        break;
+
+                    case 2:
+
+                        System.out.println("Digite o código do produto : ");
+                        int codigo2 = sc.nextInt();
+
+                        String sql2 =
+                                "SELECT * FROM produto " +
+                                "WHERE codigo = ?";
+
+                        PreparedStatement stmt2 =
+                                conexao.prepareStatement(sql2);
+
+                        stmt2.setInt(1, codigo2);
+
+                        ResultSet rs =
+                                stmt2.executeQuery();
+
+                        while (rs.next()) {
+
+                            System.out.println(
+                                    "Nome Produto: "
+                                    + rs.getString("Nome")
+                                    + " | Preço Produto: "
+                                    + rs.getFloat("Preco")
+                                    + " | Código Produto: "
+                                    + rs.getInt("Codigo")
+                            );
+                        }
+
+                        break;
+
+                    case 3:
+
+                        System.out.println(
+                                "Digite o código do Produto " +
+                                "que deseja atualizar o preço : "
+                        );
+
+                        int codigobusca = sc.nextInt();
+
+                        System.out.println("Digite o NOVO PREÇO : ");
+                        float novopreco = sc.nextFloat();
+
+                        String sqlupd =
+                                "UPDATE produto " +
+                                "SET Preco = ? " +
+                                "WHERE Codigo = ?";
+
+                        PreparedStatement stmtUpd =
+                                conexao.prepareStatement(sqlupd);
+
+                        stmtUpd.setFloat(1, novopreco);
+                        stmtUpd.setInt(2, codigobusca);
+
+                        int linhasAfetadas =
+                                stmtUpd.executeUpdate();
+
+                        if (linhasAfetadas > 0) {
+
+                            System.out.println("Preço Atualizado!!!");
+
+                        } else {
+
+                            System.out.println("Produto não encontrado!!!");
+                        }
+
+                        break;
+
+                    case 4:
+
+                        System.out.println(
+                                "Digite o Código do Produto " +
+                                "que deseja deletar"
+                        );
+
+                        int codigoDel = sc.nextInt();
+
+                        String sqlDel =
+                                "DELETE FROM produto " +
+                                "WHERE Codigo LIKE ?";
+
+                        PreparedStatement stmtDel =
+                                conexao.prepareStatement(sqlDel);
+
+                        stmtDel.setString(
+                                1,
+                                "%" + codigoDel + "%"
+                        );
+
+                        stmtDel.executeUpdate();
+
+                        System.out.println("Produto removido!");
+
+                        break;
+
+                    case 0:
+
+                        System.out.println("Programa Finalizado!");
+
+                        break;
+
+                    default:
+
+                        System.out.println("Opção inválida!");
+                }
+            }
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Erro de Cadastro "
+                    + e.getMessage()
+            );
         }
     }
 }
