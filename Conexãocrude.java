@@ -15,7 +15,7 @@ public class Produto2 {
 
         Scanner sc = new Scanner(System.in);
 
-        String url = "mysql://root:GjwVHeUmloQCOqFSxtIEfJEjXvjDYPdF@mysql.railway.internal:3306/railway";
+        String url = "mysql://root:QWpxNnwGWZoIyevGeaLcLtrTQJgsWMWr@altaria.proxy.rlwy.net:46114/railway";
         String usuario = "root";
         String senha = "GjwVHeUmloQCOqFSxtIEfJEjXvjDYPdF";
 
